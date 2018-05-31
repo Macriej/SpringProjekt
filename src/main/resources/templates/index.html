@@ -1,18 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
-<a sec:authorize="!isAuthenticated()" th:href="@{/login}"> Login </a>
-<a sec:authorize="isAuthenticated()" th:href="@{/logout}"> Logout </a>
+<a sec:authorize="!isAuthenticated()" th:href="@{/login}" th:text="#{login}">Login</a>
+<a sec:authorize="isAuthenticated()" th:href="@{/logout}" th:text="#{logout}">Logout</a>
 <div sec:authorize="isAuthenticated()">
-    Hello <span sec:authentication="name">someone</span>!
-    <br/>
-    Your roles: <span sec:authentication="principal.authorities">none:</span>
 
+    <span th:text="#{greating}"></span> <span sec:authentication="name">someone</span>!<br/>
+    <span th:text="#{your_roles}"></span> Your roles: <span sec:authentication="principal.authorities">none:</span>
+    <span th:text="#{lang.change}"></span>:
+    <select id="locales">
+        <option value=""></option>
+        <option value="pl" th:text="#{lang.pl}"></option>
+        <option value="en" th:text="#{lang.eng}"></option>
+
+    </select>
+    <script src="/webjars/jquery/3.0.0/jquery.js">
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#locales").change(function () {
+                var selectedOption = $('#locales').val();
+                if (selectedOption != '') {
+                    window.location.replace('?lang=' + selectedOption);
+                }
+            });
+        });
+
+    </script>
 
 </div>
 </body>

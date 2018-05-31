@@ -2,17 +2,18 @@ package babinski.maciej.spring.data.objects;
 
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
-@Entity
+@Entity    // łaczy z baza danych koleracja encja /tabela
+@Table(name = "users")
 public class User implements UserDetails {
     @Id
     @GeneratedValue
@@ -24,13 +25,18 @@ public class User implements UserDetails {
     private String username;
 
     @NotNull
-    @Length(min = 4, max = 16)
     private String password;
 
     @NotNull
     @Email
     private String email;
-    private Collection<@NotNull GrantedAuthority> authorities;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_Id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
+    private Collection<@NotNull Role> roles;
 
 
     public User() {    //empty constructor for JPA to inject into
@@ -42,10 +48,10 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.email = email;
-        this.authorities = new ArrayList<>();
+        this.roles = new HashSet<>();
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -80,11 +86,13 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+        return roles.stream()
+                .map(r -> new SimpleGrantedAuthority(r.getName()))
+                .collect(Collectors.toSet());
     }
 
-    public boolean addAuthority(@NotNull GrantedAuthority authority) {
-        return authorities.add(authority);
+    public boolean addRole(Role role) {
+        return roles.add(role);
 
     }
 
